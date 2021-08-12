@@ -36,7 +36,8 @@ export const loadImage = async (image: ImageType, src: string) => {
   loader.load(src, function (texture) {
     const img = texture.image;
 
-    const worldPixel = getWorldPixelAtZ(5, State.camera);
+    // TODO temp scale down for bowie, usually 5
+    const worldPixel = getWorldPixelAtZ(1.5, State.camera);
     const w = img.width * worldPixel;
     const h = img.height * worldPixel;
 

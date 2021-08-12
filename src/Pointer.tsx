@@ -80,6 +80,7 @@ const Pointer = () => {
         image.down.copy(image.mesh.position);
         cameraDown.copy(camera.position);
         pointer.active = true;
+        pointer.middle = e.which === 2;
 
         if (State.intersects.length > 0) {
           const mesh = State.intersects[0];
@@ -113,59 +114,62 @@ const Pointer = () => {
           const worldPixel = getWorldPixelAtZ(camera.position.z, camera);
           const dx = pointer.diffMouse.x * worldPixel;
           const dy = pointer.diffMouse.y * worldPixel;
-          if (State.drawBox.outline.visible) {
-            drawPointer(pointer.down.ray, pointer.ray);
-          } else if (State.intersects.length > 0) {
-            const mesh = State.intersects[0];
-            if (mesh.userData.kind === "dst") {
-              const index = portals
-                .map((portal) => portal.dst.mesh.uuid)
-                .indexOf(mesh.uuid);
-              const portal = portals[index];
-              mesh.position.setX(mesh.userData.origin.x + dx);
-              mesh.position.setY(mesh.userData.origin.y - dy);
-              const x = mesh.userData.origin.x + dx;
-              const y = mesh.userData.origin.y - dy;
-              portal.dst.min.setX(x - mesh.scale.x / 2);
-              portal.dst.min.setY(y - mesh.scale.y / 2);
-              portal.dst.max.setX(x + mesh.scale.x / 2);
-              portal.dst.max.setY(y + mesh.scale.y / 2);
 
-              portals[index].dst.occluder.position.setX(x);
-              portals[index].dst.occluder.position.setY(y);
-              portals[index].dst.outline.position.setX(x);
-              portals[index].dst.outline.position.setY(y);
-
-              updateLines(portal);
-            } else if (mesh.userData.kind === "src") {
-              const index = portals
-                .map((portal) => portal.src.mesh.uuid)
-                .indexOf(mesh.uuid);
-              const portal = portals[index];
-              const x = mesh.userData.origin.x + dx;
-              const y = mesh.userData.origin.y - dy;
-              mesh.position.setX(x);
-              mesh.position.setY(y);
-              portal.src.min.setX(x - mesh.scale.x / 2);
-              portal.src.min.setY(y - mesh.scale.y / 2);
-              portal.src.max.setX(x + mesh.scale.x / 2);
-              portal.src.max.setY(y + mesh.scale.y / 2);
-
-              portals[index].src.occluder.position.setX(x);
-              portals[index].src.occluder.position.setY(y);
-              portals[index].src.outline.position.setX(x);
-              portals[index].src.outline.position.setY(y);
-
-              portal.src.outline.position.setX(mesh.userData.origin.x + dx);
-              portal.src.outline.position.setY(mesh.userData.origin.y - dy);
-
-              updateLines(portal);
-            }
-          } else {
-            // camera.position.setX(cameraDown.x - dx);
-            // camera.position.setY(cameraDown.y + dy);
+          if (pointer.middle) {
+            // pan when mousewheel button is pressed
+            // pan actually means ove image
             image.mesh.position.setX(image.down.x + dx);
             image.mesh.position.setY(image.down.y - dy);
+          } else {
+            if (State.drawBox.outline.visible) {
+              drawPointer(pointer.down.ray, pointer.ray);
+            } else if (State.intersects.length > 0) {
+              const mesh = State.intersects[0];
+              if (mesh.userData.kind === "dst") {
+                const index = portals
+                  .map((portal) => portal.dst.mesh.uuid)
+                  .indexOf(mesh.uuid);
+                const portal = portals[index];
+                mesh.position.setX(mesh.userData.origin.x + dx);
+                mesh.position.setY(mesh.userData.origin.y - dy);
+                const x = mesh.userData.origin.x + dx;
+                const y = mesh.userData.origin.y - dy;
+                portal.dst.min.setX(x - mesh.scale.x / 2);
+                portal.dst.min.setY(y - mesh.scale.y / 2);
+                portal.dst.max.setX(x + mesh.scale.x / 2);
+                portal.dst.max.setY(y + mesh.scale.y / 2);
+
+                portals[index].dst.occluder.position.setX(x);
+                portals[index].dst.occluder.position.setY(y);
+                portals[index].dst.outline.position.setX(x);
+                portals[index].dst.outline.position.setY(y);
+
+                updateLines(portal);
+              } else if (mesh.userData.kind === "src") {
+                const index = portals
+                  .map((portal) => portal.src.mesh.uuid)
+                  .indexOf(mesh.uuid);
+                const portal = portals[index];
+                const x = mesh.userData.origin.x + dx;
+                const y = mesh.userData.origin.y - dy;
+                mesh.position.setX(x);
+                mesh.position.setY(y);
+                portal.src.min.setX(x - mesh.scale.x / 2);
+                portal.src.min.setY(y - mesh.scale.y / 2);
+                portal.src.max.setX(x + mesh.scale.x / 2);
+                portal.src.max.setY(y + mesh.scale.y / 2);
+
+                portals[index].src.occluder.position.setX(x);
+                portals[index].src.occluder.position.setY(y);
+                portals[index].src.outline.position.setX(x);
+                portals[index].src.outline.position.setY(y);
+
+                portal.src.outline.position.setX(mesh.userData.origin.x + dx);
+                portal.src.outline.position.setY(mesh.userData.origin.y - dy);
+
+                updateLines(portal);
+              }
+            }
           }
         } else {
           setIntersections(pointer);
@@ -174,6 +178,7 @@ const Pointer = () => {
 
       const pointerUp = (e: PointerEvent) => {
         pointer.active = false;
+        pointer.middle = false;
 
         if (State.drawBox.outline.visible === true) {
           const width = State.drawBox.diff.x;
