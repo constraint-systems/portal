@@ -2,15 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import State from "./State";
 import Pointer from "./Pointer";
-import {
-  getDimensions,
-  getWorldPixelAtZ,
-  loadImage,
-  updateLines,
-  createPortal,
-  makePortal,
-} from "./Actions";
-import { outlineVertices } from "./Constants";
+import { getWorldPixelAtZ, loadImage } from "./Actions";
 
 const App = () => {
   const canvasRef = useRef(null);

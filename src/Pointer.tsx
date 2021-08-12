@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import State from "./State";
 import * as THREE from "three";
 import {
@@ -10,10 +10,9 @@ import {
   drawPointer,
   makePortal,
   getDimensions,
-  setRay,
 } from "./Actions";
 
-const colorCyan = new THREE.Color("rgb(152, 215, 170)");
+// const colorCyan = new THREE.Color("rgb(152, 215, 170)");
 const colorMagenta = new THREE.Color("rgb(238, 88, 181)");
 
 const setIntersections = (pointer: any) => {
