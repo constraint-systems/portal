@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { lastCommit } from "./Constants";
+import gitInfo from "./gitInfo.json";
 
 const GitInfo = () => {
   return (
@@ -17,7 +17,7 @@ const GitInfo = () => {
       Under construction
       <br />
       <a href="https://github.com/constraint-systems/portal" target="_blank">
-        {lastCommit}
+        {gitInfo.lastCommit}
       </a>
     </div>
   );
