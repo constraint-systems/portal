@@ -12,6 +12,7 @@ const App = () => {
   useEffect(() => {
     const canvas = canvasRef.current;
     State.canvas = canvas;
+
     if (canvas !== null) {
       const camera = new THREE.PerspectiveCamera(
         75,
