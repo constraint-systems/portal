@@ -10,6 +10,7 @@ export type PointerType = {
   diff: THREE.Vector3;
   diffMouse: THREE.Vector2;
   active: boolean;
+  middle: boolean;
   down: {
     mouse: THREE.Vector2;
     clip: THREE.Vector3;
@@ -125,6 +126,7 @@ const State: StateType = {
     diffMouse: new THREE.Vector2(),
     diff: new THREE.Vector3(),
     active: false,
+    middle: false,
     down: {
       mouse: new THREE.Vector2(),
       clip: new THREE.Vector3(),
