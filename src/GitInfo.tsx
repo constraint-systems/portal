@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import gitInfo from "./gitInfo.json";
 
 const GitInfo = () => {
@@ -16,7 +15,11 @@ const GitInfo = () => {
     >
       Under construction
       <br />
-      <a href="https://github.com/constraint-systems/portal" target="_blank">
+      <a
+        href="https://github.com/constraint-systems/portal"
+        target="_blank"
+        rel="noreferrer"
+      >
         {gitInfo.lastCommit}
       </a>
     </div>
