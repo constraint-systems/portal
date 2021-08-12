@@ -99,6 +99,22 @@ export const getTop = (meshes: Array<THREE.Object3D>) => {
   }
 };
 
+export const getSmallestTop = (meshes: Array<THREE.Object3D>) => {
+  if (meshes.length === 1) {
+    return meshes;
+  } else if (meshes.length === 0) {
+    return [];
+  } else {
+    const areas = meshes.map((mesh) => mesh.scale.x * mesh.scale.y);
+    const min = Math.min(...areas);
+    const minIndex = areas.indexOf(min);
+    // const renderOrder = meshes.map((mesh) => mesh.renderOrder);
+    // const max = Math.max(...renderOrder);
+    // const maxIndex = renderOrder.indexOf(max);
+    return [meshes[minIndex]];
+  }
+};
+
 export const makeOutline = (color: any, lineWidth: number) => {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute(
