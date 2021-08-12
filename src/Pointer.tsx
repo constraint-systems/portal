@@ -6,7 +6,7 @@ import {
   setPointerDown,
   getWorldPixelAtZ,
   updateLines,
-  getTop,
+  getSmallestTop,
   drawPointer,
   makePortal,
   getDimensions,
@@ -27,7 +27,7 @@ const setIntersections = (pointer: any) => {
       .intersectObjects(meshes)
       .map((intersect) => intersect.object);
 
-    const top = getTop(intersects);
+    const top = getSmallestTop(intersects);
 
     State.intersects = top;
 
