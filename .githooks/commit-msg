@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+
+const message = fs.readFileSync(process.argv[2], "utf8").trim();
+
+const filename = "../src/gitInfo.json";
+const file = require(filename);
+
+file.lastCommit = new Date().toLocaleString() + " " + message;
+console.log(file);
+
+fs.writeFile(
+  "src/gitInfo.json",
+  JSON.stringify(file, null, 2),
+  function writeJSON(err) {
+    if (err) return console.log(err);
+    console.log(JSON.stringify(file));
+    console.log("writing to " + filename);
+  }
+);
+console.log(message);
