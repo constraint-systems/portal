@@ -3,6 +3,7 @@ import * as THREE from "three";
 import State from "./State";
 import Pointer from "./Pointer";
 import { getWorldPixelAtZ, loadImage } from "./Actions";
+import GitInfo from "./GitInfo";
 
 const App = () => {
   const canvasRef = useRef(null);
@@ -90,6 +91,7 @@ const App = () => {
           <Pointer />
         </>
       ) : null}
+      <GitInfo />
     </>
   );
 };
