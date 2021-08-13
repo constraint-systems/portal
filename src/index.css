@@ -13,6 +13,7 @@ code {
 }
 
 canvas {
+  touch-action: none;
   display: block;
 }
 
