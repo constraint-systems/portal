@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import State from "./State";
 import Pointer from "./Pointer";
-import { getWorldPixelAtZ, loadImage } from "./Actions";
+import { applyOutlineVisible, getWorldPixelAtZ, loadImage } from "./Actions";
 import GitInfo from "./GitInfo";
+import Keyboard from "./Keyboard";
+import Tips from "./Tips";
 
 const App = () => {
   const canvasRef = useRef(null);
@@ -38,10 +40,9 @@ const App = () => {
       State.drawBox.outline.renderOrder = 999;
       State.scene3.add(State.drawBox.outline);
 
-      // makePortal([-1, -1, 2, 1], [2, 1, 2, 1], State.portals, camera);
-      // makePortal([-3, -1, 1, 1], [-2, 1, 1, 1], State.portals, camera);
-
       const vector = new THREE.Vector2();
+
+      applyOutlineVisible();
 
       const animate = () => {
         requestAnimationFrame(animate);
@@ -89,6 +90,8 @@ const App = () => {
       {loaded ? (
         <>
           <Pointer />
+          <Keyboard />
+          <Tips />
         </>
       ) : null}
       <GitInfo />
