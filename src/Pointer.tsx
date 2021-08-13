@@ -82,6 +82,8 @@ const Pointer = () => {
         pointer.active = true;
         pointer.middle = e.which === 2;
 
+        setIntersections(pointer);
+
         if (State.intersects.length > 0) {
           const mesh = State.intersects[0];
           mesh.userData.origin = new THREE.Vector3();
