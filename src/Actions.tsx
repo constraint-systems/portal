@@ -213,6 +213,8 @@ export const makePortal = (
     if (State.scene) State.scene.add(mesh);
   }
 
+  const dstOffset = 0;
+
   // set dst mesh
   {
     const texture = makeSrcTexture();
@@ -224,8 +226,8 @@ export const makePortal = (
     mesh.material = material;
 
     mesh.scale.set(dstWidth, dstHeight, 1);
-    mesh.position.x = x;
-    mesh.position.y = y;
+    mesh.position.x = x + dstOffset;
+    mesh.position.y = y + dstOffset;
 
     portal.dst.scene.add(mesh);
   }
@@ -256,8 +258,8 @@ export const makePortal = (
     occluder.geometry = geometry;
     occluder.material = material;
     occluder.scale.set(dstWidth, dstHeight, 1);
-    occluder.position.x = portal.dst.min.x + dstWidth / 2;
-    occluder.position.y = portal.dst.min.y + dstHeight / 2;
+    occluder.position.x = portal.dst.min.x + dstWidth / 2 + dstOffset;
+    occluder.position.y = portal.dst.min.y + dstHeight / 2 + dstOffset;
     occluder.position.z = 0.00001;
     occluder.material.colorWrite = false;
     State.scene2.add(occluder);
@@ -269,6 +271,7 @@ export const makePortal = (
     srcOutline.scale.set(srcWidth, srcHeight, 1);
     srcOutline.position.x = portal.src.min.x + srcWidth / 2;
     srcOutline.position.y = portal.src.min.y + srcHeight / 2;
+    srcOutline.visible = State.outlinesVisible;
     State.scene3.add(portal.src.outline);
   }
 
@@ -280,8 +283,9 @@ export const makePortal = (
     // @ts-ignore
     dstOutline.material.needsUpdate = true;
     dstOutline.scale.set(dstWidth, dstHeight, 1);
-    dstOutline.position.x = portal.dst.min.x + dstWidth / 2;
-    dstOutline.position.y = portal.dst.min.y + dstHeight / 2;
+    dstOutline.position.x = portal.dst.min.x + dstWidth / 2 + dstOffset;
+    dstOutline.position.y = portal.dst.min.y + dstHeight / 2 + dstOffset;
+    dstOutline.visible = State.outlinesVisible;
     // portal.dst.scene.add(portal.dst.outline);
     State.scene3.add(portal.dst.outline);
   }
@@ -321,4 +325,16 @@ export const drawPointer = (ray1: THREE.Vector3, ray2: THREE.Vector3) => {
   outline.position.y = min.y + diff.y / 2;
   outline.scale.x = diff.x;
   outline.scale.y = diff.y;
+};
+
+export const applyOutlineVisible = () => {
+  for (let portal of State.portals) {
+    portal.src.outline.visible = State.outlinesVisible;
+    portal.dst.outline.visible = State.outlinesVisible;
+  }
+};
+
+export const toggleOutlines = () => {
+  State.outlinesVisible = !State.outlinesVisible;
+  applyOutlineVisible();
 };

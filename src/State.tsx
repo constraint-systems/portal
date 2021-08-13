@@ -64,6 +64,7 @@ type StateType = {
   scene2: THREE.Scene;
   scene3: THREE.Scene;
   scene4: THREE.Scene;
+  outlinesVisible: boolean;
   zoomRay: {
     ray: THREE.Vector3;
     tempClip: THREE.Vector3;
@@ -96,6 +97,7 @@ const State: StateType = {
   scene3: new THREE.Scene(),
   scene4: new THREE.Scene(),
   raycaster: new THREE.Raycaster(),
+  outlinesVisible: true,
   zoomRay: {
     clip: new THREE.Vector3(),
     tempClip: new THREE.Vector3(),
