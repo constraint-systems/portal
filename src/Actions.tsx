@@ -266,7 +266,7 @@ export const makePortal = (
     srcOutline.scale.set(srcWidth, srcHeight, 1);
     srcOutline.position.x = portal.src.min.x + srcWidth / 2;
     srcOutline.position.y = portal.src.min.y + srcHeight / 2;
-    portal.dst.scene.add(portal.src.outline);
+    State.scene3.add(portal.src.outline);
   }
 
   // set dst outline
@@ -279,7 +279,8 @@ export const makePortal = (
     dstOutline.scale.set(dstWidth, dstHeight, 1);
     dstOutline.position.x = portal.dst.min.x + dstWidth / 2;
     dstOutline.position.y = portal.dst.min.y + dstHeight / 2;
-    portal.dst.scene.add(portal.dst.outline);
+    // portal.dst.scene.add(portal.dst.outline);
+    State.scene3.add(portal.dst.outline);
   }
 
   const maxOrder =
@@ -298,8 +299,8 @@ export const makePortal = (
   portal.line1.renderOrder = minOrder;
   portal.src.occluder.renderOrder = minOrder - 1;
   portal.dst.occluder.renderOrder = minOrder - 2;
+  portal.src.outline.renderOrder = minOrder - 3;
 
-  portal.src.outline.renderOrder = minOrder - 1;
   portal.dst.outline.renderOrder = minOrder - 2;
 
   State.portals.push(portal);
