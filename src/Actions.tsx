@@ -151,14 +151,14 @@ export const createPortal = (
   return {
     line1: makeLine(),
     src: {
-      outline: makeOutline(0xaaaaaa, 2),
+      outline: makeOutline(0x66c2a5, 2),
       mesh: new THREE.Mesh(),
       occluder: new THREE.Mesh(),
       min: new THREE.Vector3(sx - sw / 2, sy - sh / 2, 0),
       max: new THREE.Vector3(sx + sw / 2, sy + sh / 2, 0),
     },
     dst: {
-      outline: makeOutline(0xaaaaaa, 4),
+      outline: makeOutline(0xfc8d62, 2),
       mesh: new THREE.Mesh(),
       scene: new THREE.Scene(),
       occluder: new THREE.Mesh(),
@@ -178,6 +178,9 @@ export const makePortal = (
 
   const { srcWidth, srcHeight, dstWidth, dstHeight } = getDimensions(portal);
   const worldPixel = getWorldPixelAtZ(camera.position.z, State.camera);
+
+  // TODO hide line for now
+  portal.line1.visible = false;
 
   const makeSrcTexture = () => {
     return new THREE.DataTexture(

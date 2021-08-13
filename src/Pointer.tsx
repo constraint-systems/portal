@@ -47,9 +47,9 @@ const setIntersections = (pointer: any) => {
         intersectIds.includes(dstMesh.uuid)
       ) {
         // @ts-ignore
-        portal.src.outline.material.color.set(colorMagenta);
+        portal.src.outline.material.color.set(0x00ffff);
         // @ts-ignore
-        portal.dst.outline.material.color.set(colorMagenta);
+        portal.dst.outline.material.color.set(0xff00ff);
         // @ts-ignore
         portal.line1.material.color.set(colorMagenta);
         // portal.src.outline.visible = true;
