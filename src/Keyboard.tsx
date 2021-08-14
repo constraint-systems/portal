@@ -20,6 +20,8 @@ function Keyboard() {
           State.image.mesh.position.x += worldPixel * 32;
         } else if (key === ";") {
           toggleOutlines();
+        } else if (key === "control") {
+          if (State.canvas) State.canvas.style.cursor = "crosshair";
         }
       }
     };

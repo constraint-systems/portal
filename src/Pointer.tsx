@@ -15,7 +15,7 @@ import {
 // const colorCyan = new THREE.Color("rgb(152, 215, 170)");
 const colorMagenta = new THREE.Color("rgb(238, 88, 181)");
 
-const setIntersections = (pointer: any) => {
+const setIntersections = (pointer: any, e: any) => {
   const { portals, raycaster, camera, canvas } = State;
   if (camera && canvas) {
     const meshes = portals
@@ -30,8 +30,9 @@ const setIntersections = (pointer: any) => {
     const top = getSmallestTop(intersects);
 
     State.intersects = top;
+    if (e.ctrlKey) State.intersects = [];
 
-    if (top.length > 0) {
+    if (State.intersects.length > 0) {
       canvas.style.cursor = "default";
     } else {
       canvas.style.cursor = "crosshair";
@@ -48,8 +49,10 @@ const setIntersections = (pointer: any) => {
       ) {
         // @ts-ignore
         portal.src.outline.material.color.set(0x00ffff);
+        portal.src.outline.visible = true;
         // @ts-ignore
         portal.dst.outline.material.color.set(0xff00ff);
+        portal.dst.outline.visible = true;
         // @ts-ignore
         portal.line1.material.color.set(colorMagenta);
         // portal.src.outline.visible = true;
@@ -58,8 +61,10 @@ const setIntersections = (pointer: any) => {
       } else {
         // @ts-ignore
         portal.src.outline.material.color.setHex(0xaaaaaa);
+        portal.src.outline.visible = State.outlinesVisible;
         // @ts-ignore
         portal.dst.outline.material.color.setHex(0xaaaaaa);
+        portal.dst.outline.visible = State.outlinesVisible;
         // @ts-ignore
         portal.line1.material.color.setHex(0xaaaaaa);
         // portal.src.outline.visible = false;
@@ -82,27 +87,14 @@ const Pointer = () => {
         pointer.active = true;
         pointer.middle = e.which === 2;
 
-        setIntersections(pointer);
+        setIntersections(pointer, e);
 
-        if (State.intersects.length > 0) {
+        if (State.intersects.length > 0 && !e.ctrlKey) {
           const mesh = State.intersects[0];
           mesh.userData.origin = new THREE.Vector3();
           mesh.userData.origin.copy(mesh.position);
         } else {
           drawPointer(pointer.down.ray, pointer.ray);
-          // makePortal(
-          //   [pointer.ray.x, pointer.ray.y, 1, 1],
-          //   [pointer.ray.x, pointer.ray.y, 1, 1],
-          //   State.portals,
-          //   camera,
-          //   State.scene2
-          // );
-          // setIntersections(pointer);
-          // if (State.intersects.length > 0) {
-          //   const mesh = State.intersects[0];
-          //   mesh.userData.origin = new THREE.Vector3();
-          //   mesh.userData.origin.copy(mesh.position);
-          // }
         }
 
         canvas.setPointerCapture(e.pointerId);
@@ -174,7 +166,7 @@ const Pointer = () => {
             }
           }
         } else {
-          setIntersections(pointer);
+          setIntersections(pointer, e);
         }
       };
 
