@@ -10,6 +10,7 @@ import {
   drawPointer,
   makePortal,
   getDimensions,
+  snap,
 } from "./Actions";
 
 // const colorCyan = new THREE.Color("rgb(152, 215, 170)");
@@ -30,7 +31,7 @@ const setIntersections = (pointer: any, e: any) => {
     const top = getSmallestTop(intersects);
 
     State.intersects = top;
-    if (e.ctrlKey) State.intersects = [];
+    if (State.pressed.includes("c")) State.intersects = [];
 
     if (State.intersects.length > 0) {
       canvas.style.cursor = "default";
@@ -39,6 +40,7 @@ const setIntersections = (pointer: any, e: any) => {
     }
 
     const intersectIds = State.intersects.map((intersect) => intersect.uuid);
+    const selectedIds = State.selected.map((mesh) => mesh.uuid);
     for (let i = 0; i < portals.length; i++) {
       const portal = portals[i];
       const srcMesh = portal.src.mesh;
@@ -55,21 +57,65 @@ const setIntersections = (pointer: any, e: any) => {
         portal.dst.outline.visible = true;
         // @ts-ignore
         portal.line1.material.color.set(colorMagenta);
-        // portal.src.outline.visible = true;
-        // portal.dst.outline.visible = true;
-        // portal.line1.visible = true;
+      } else {
+        if (
+          !(
+            selectedIds.includes(srcMesh.uuid) ||
+            selectedIds.includes(dstMesh.uuid)
+          )
+        ) {
+          // @ts-ignore
+          portal.src.outline.material.color.setHex(0xaaaaaa);
+          portal.src.outline.visible = State.outlinesVisible;
+          // @ts-ignore
+          portal.dst.outline.material.color.setHex(0xaaaaaa);
+          portal.dst.outline.visible = State.outlinesVisible;
+          // @ts-ignore
+          portal.line1.material.color.setHex(0xaaaaaa);
+        }
+      }
+    }
+  }
+};
+
+const setSelected = (toSelect: Array<THREE.Object3D>) => {
+  const { portals } = State;
+  State.selected = toSelect;
+
+  if (State.selected.length > 0) {
+    const selectedIds = State.selected.map((mesh) => mesh.uuid);
+    for (let i = 0; i < portals.length; i++) {
+      const portal = portals[i];
+      const srcMesh = portal.src.mesh;
+      const dstMesh = portal.dst.mesh;
+      if (
+        selectedIds.includes(srcMesh.uuid) ||
+        selectedIds.includes(dstMesh.uuid)
+      ) {
+        // @ts-ignore
+        portal.src.outline.material.color.set(0x00ffff);
+        // @ts-ignore
+        portal.src.outline.material.lineWidth = 12;
+        portal.src.outline.visible = true;
+
+        // @ts-ignore
+        portal.dst.outline.material.color.set(0xff00ff);
+        // @ts-ignore
+        portal.dst.outline.material.lineWidth = 12;
+        portal.dst.outline.visible = true;
       } else {
         // @ts-ignore
         portal.src.outline.material.color.setHex(0xaaaaaa);
         portal.src.outline.visible = State.outlinesVisible;
         // @ts-ignore
+        portal.src.outline.material.lineWidth = 8;
+        // @ts-ignore
         portal.dst.outline.material.color.setHex(0xaaaaaa);
         portal.dst.outline.visible = State.outlinesVisible;
         // @ts-ignore
+        portal.dst.outline.material.lineWidth = 8;
+        // @ts-ignore
         portal.line1.material.color.setHex(0xaaaaaa);
-        // portal.src.outline.visible = false;
-        // portal.dst.outline.visible = false;
-        // portal.line1.visible = false;
       }
     }
   }
@@ -90,6 +136,8 @@ const Pointer = () => {
         setIntersections(pointer, e);
 
         if (State.intersects.length > 0 && !e.ctrlKey) {
+          setSelected(State.intersects);
+
           const mesh = State.intersects[0];
           mesh.userData.origin = new THREE.Vector3();
           mesh.userData.origin.copy(mesh.position);
@@ -112,22 +160,26 @@ const Pointer = () => {
           if (pointer.middle) {
             // pan when mousewheel button is pressed
             // pan actually means ove image
-            image.mesh.position.setX(image.down.x + dx);
-            image.mesh.position.setY(image.down.y - dy);
+            image.mesh.position.setX(snap(image.down.x + dx));
+            image.mesh.position.setY(snap(image.down.y - dy));
           } else {
             if (State.drawBox.outline.visible) {
               drawPointer(pointer.down.ray, pointer.ray);
-            } else if (State.intersects.length > 0) {
-              const mesh = State.intersects[0];
+            } else if (State.selected.length > 0) {
+              const mesh = State.selected[0];
               if (mesh.userData.kind === "dst") {
                 const index = portals
                   .map((portal) => portal.dst.mesh.uuid)
                   .indexOf(mesh.uuid);
                 const portal = portals[index];
-                mesh.position.setX(mesh.userData.origin.x + dx);
-                mesh.position.setY(mesh.userData.origin.y - dy);
-                const x = mesh.userData.origin.x + dx;
-                const y = mesh.userData.origin.y - dy;
+                const x =
+                  snap(mesh.userData.origin.x - mesh.scale.x / 2 + dx) +
+                  mesh.scale.x / 2;
+                const y =
+                  snap(mesh.userData.origin.y - mesh.scale.y / 2 - dy) +
+                  mesh.scale.y / 2;
+                mesh.position.setX(x);
+                mesh.position.setY(y);
                 portal.dst.min.setX(x - mesh.scale.x / 2);
                 portal.dst.min.setY(y - mesh.scale.y / 2);
                 portal.dst.max.setX(x + mesh.scale.x / 2);
@@ -144,8 +196,12 @@ const Pointer = () => {
                   .map((portal) => portal.src.mesh.uuid)
                   .indexOf(mesh.uuid);
                 const portal = portals[index];
-                const x = mesh.userData.origin.x + dx;
-                const y = mesh.userData.origin.y - dy;
+                const x =
+                  snap(mesh.userData.origin.x - mesh.scale.x / 2 + dx) +
+                  mesh.scale.x / 2;
+                const y =
+                  snap(mesh.userData.origin.y - mesh.scale.y / 2 - dy) +
+                  mesh.scale.y / 2;
                 mesh.position.setX(x);
                 mesh.position.setY(y);
                 portal.src.min.setX(x - mesh.scale.x / 2);
@@ -158,8 +214,8 @@ const Pointer = () => {
                 portals[index].src.outline.position.setX(x);
                 portals[index].src.outline.position.setY(y);
 
-                portal.src.outline.position.setX(mesh.userData.origin.x + dx);
-                portal.src.outline.position.setY(mesh.userData.origin.y - dy);
+                portal.src.outline.position.setX(x);
+                portal.src.outline.position.setY(y);
 
                 updateLines(portal);
               }
@@ -193,115 +249,164 @@ const Pointer = () => {
       };
 
       const mouseWheel = (e: Event) => {
-        const visibleHeight = window.innerHeight;
+        const worldPixel = getWorldPixelAtZ(camera.position.z, State.camera);
+
+        // const visibleHeight = window.innerHeight;
         // @ts-ignore
-        const adjusted = visibleHeight + e.deltaY;
-        const ratio = visibleHeight / adjusted;
+        // const adjusted = visibleHeight + e.deltaY;
+        // @ts-ignore
+        const sign = e.deltaY > 0 ? -1 : 1;
+        // @ts-ignore
+        // const adjust = worldPixel * 32 * sign;
 
-        if (State.intersects.length > 0) {
+        if (State.selected.length > 0) {
+          const selectedIds = State.selected.map((mesh) => mesh.uuid);
+
           for (let mesh of State.intersects) {
-            // if (group.userData.selected) {
-            const prevScaleX = mesh.scale.x;
-            const prevScaleY = mesh.scale.y;
-            const nextScaleX = prevScaleX * ratio;
-            const nextScaleY = prevScaleY * ratio;
+            if (selectedIds.includes(mesh.uuid)) {
+              let portal, keyname;
+              if (mesh.userData.kind === "dst") {
+                const index = portals
+                  .map((portal) => portal.dst.mesh.uuid)
+                  .indexOf(mesh.uuid);
+                portal = portals[index];
+                keyname = "dst";
+              } else if (mesh.userData.kind === "src") {
+                const index = portals
+                  .map((portal) => portal.src.mesh.uuid)
+                  .indexOf(mesh.uuid);
+                portal = portals[index];
+                keyname = "src";
+              }
 
-            const diffx = pointer.ray.x - mesh.position.x;
-            const rx = diffx / prevScaleX;
-            const newRx = diffx / nextScaleX;
-            const x = mesh.position.x + (newRx - rx) * nextScaleX;
+              if (portal && keyname) {
+                const aspect =
+                  // @ts-ignore
+                  portal[keyname].scale.x / portal[keyname].scale.y;
+                if (aspect > 1) {
+                  // @ts-ignore
+                  portal[keyname].scale.x += worldPixel * 16 * sign;
+                  // @ts-ignore
+                  portal[keyname].scale.y = portal[keyname].scale.x / aspect;
+                } else {
+                  // @ts-ignore
+                  portal[keyname].scale.y += worldPixel * 16 * sign;
+                  // @ts-ignore
+                  portal[keyname].scale.x = portal[keyname].scale.y * aspect;
+                }
 
-            const diffy = pointer.ray.y - mesh.position.y;
-            const ry = diffy / prevScaleY;
-            const newRy = diffy / nextScaleY;
-            const y = mesh.position.y + (newRy - ry) * nextScaleY;
+                // const prevScaleX = mesh.scale.x;
+                // const prevScaleY = mesh.scale.y;
+                // @ts-ignore
+                const nextScaleX = snap(portal[keyname].scale.x);
+                // @ts-ignore
+                const nextScaleY = snap(portal[keyname].scale.y);
 
-            mesh.position.x = x;
-            mesh.position.y = y;
-            mesh.scale.multiplyScalar(ratio);
+                // const diffx = pointer.ray.x - mesh.position.x;
+                // const rx = diffx / prevScaleX;
+                // const newRx = diffx / nextScaleX;
 
-            if (mesh.userData.kind === "dst") {
-              const index = portals
-                .map((portal) => portal.dst.mesh.uuid)
-                .indexOf(mesh.uuid);
-              const portal = portals[index];
-              portals[index].dst.occluder.position.setX(x);
-              portals[index].dst.occluder.position.setY(y);
-              portals[index].dst.outline.position.setX(x);
-              portals[index].dst.outline.position.setY(y);
-              portals[index].dst.outline.scale.copy(mesh.scale);
-              portals[index].dst.occluder.scale.copy(mesh.scale);
+                // const x =
+                //   snap(
+                //     mesh.position.x - nextScaleX / 2 + (newRx - rx) * nextScaleX
+                //   ) +
+                //   nextScaleX / 2;
 
-              portal.dst.min.setX(x - mesh.scale.x / 2);
-              portal.dst.min.setY(y - mesh.scale.y / 2);
-              portal.dst.max.setX(x + mesh.scale.x / 2);
-              portal.dst.max.setY(y + mesh.scale.y / 2);
+                // const diffy = pointer.ray.y - mesh.position.y;
+                // const ry = diffy / prevScaleY;
+                // const newRy = diffy / nextScaleY;
+                // const y =
+                //   snap(
+                //     mesh.position.y - nextScaleY / 2 + (newRy - ry) * nextScaleY
+                //   ) +
+                //   nextScaleY / 2;
 
-              updateLines(portal);
-            } else if (mesh.userData.kind === "src") {
-              const index = portals
-                .map((portal) => portal.src.mesh.uuid)
-                .indexOf(mesh.uuid);
-              const portal = portals[index];
-              mesh.position.setX(x);
-              mesh.position.setY(y);
-              portals[index].src.occluder.position.setX(x);
-              portals[index].src.occluder.position.setY(y);
-              portals[index].src.outline.position.setX(x);
-              portals[index].src.outline.position.setY(y);
+                const x = mesh.position.x;
+                const y = mesh.position.y;
+                mesh.position.x = x;
+                mesh.position.y = y;
+                mesh.scale.x = nextScaleX;
+                mesh.scale.y = nextScaleY;
 
-              portal.src.outline.position.setX(x);
-              portal.src.outline.position.setY(y);
+                if (mesh.userData.kind === "dst") {
+                  const index = portals
+                    .map((portal) => portal.dst.mesh.uuid)
+                    .indexOf(mesh.uuid);
+                  portals[index].dst.occluder.position.setX(x);
+                  portals[index].dst.occluder.position.setY(y);
+                  portals[index].dst.outline.position.setX(x);
+                  portals[index].dst.outline.position.setY(y);
+                  portals[index].dst.outline.scale.copy(mesh.scale);
+                  portals[index].dst.occluder.scale.copy(mesh.scale);
 
-              portals[index].src.outline.scale.copy(mesh.scale);
-              portals[index].src.occluder.scale.copy(mesh.scale);
+                  portal.dst.min.setX(x - mesh.scale.x / 2);
+                  portal.dst.min.setY(y - mesh.scale.y / 2);
+                  portal.dst.max.setX(x + mesh.scale.x / 2);
+                  portal.dst.max.setY(y + mesh.scale.y / 2);
 
-              portal.src.min.setX(x - mesh.scale.x / 2);
-              portal.src.min.setY(y - mesh.scale.y / 2);
-              portal.src.max.setX(x + mesh.scale.x / 2);
-              portal.src.max.setY(y + mesh.scale.y / 2);
+                  updateLines(portal);
+                } else if (mesh.userData.kind === "src") {
+                  const index = portals
+                    .map((portal) => portal.src.mesh.uuid)
+                    .indexOf(mesh.uuid);
+                  mesh.position.setX(x);
+                  mesh.position.setY(y);
+                  portals[index].src.occluder.position.setX(x);
+                  portals[index].src.occluder.position.setY(y);
+                  portals[index].src.outline.position.setX(x);
+                  portals[index].src.outline.position.setY(y);
 
-              const { srcWidth, srcHeight } = getDimensions(portal);
-              const worldPixel = getWorldPixelAtZ(
-                camera.position.z,
-                State.camera
-              );
-              const makeSrcTexture = () => {
-                return new THREE.DataTexture(
-                  new Uint8Array(
-                    (srcWidth / worldPixel) * (srcHeight / worldPixel) * 3
-                  ),
-                  srcWidth / worldPixel,
-                  srcHeight / worldPixel,
-                  THREE.RGBFormat
-                );
-              };
-              const newTexture = makeSrcTexture();
-              // @ts-ignore
-              portal.dst.mesh.material.map = newTexture;
+                  portal.src.outline.position.setX(x);
+                  portal.src.outline.position.setY(y);
 
-              updateLines(portal);
+                  portals[index].src.outline.scale.copy(mesh.scale);
+                  portals[index].src.occluder.scale.copy(mesh.scale);
+
+                  portal.src.min.setX(x - mesh.scale.x / 2);
+                  portal.src.min.setY(y - mesh.scale.y / 2);
+                  portal.src.max.setX(x + mesh.scale.x / 2);
+                  portal.src.max.setY(y + mesh.scale.y / 2);
+
+                  const { srcWidth, srcHeight } = getDimensions(portal);
+                  const worldPixel = getWorldPixelAtZ(
+                    camera.position.z,
+                    State.camera
+                  );
+                  const makeSrcTexture = () => {
+                    return new THREE.DataTexture(
+                      new Uint8Array(
+                        (srcWidth / worldPixel) * (srcHeight / worldPixel) * 3
+                      ),
+                      srcWidth / worldPixel,
+                      srcHeight / worldPixel,
+                      THREE.RGBFormat
+                    );
+                  };
+                  const newTexture = makeSrcTexture();
+                  // @ts-ignore
+                  portal.dst.mesh.material.map = newTexture;
+
+                  updateLines(portal);
+                }
+              }
             }
           }
         } else {
-          const prevScaleX = image.mesh.scale.x;
-          const prevScaleY = image.mesh.scale.y;
-          const nextScaleX = prevScaleX * ratio;
-          const nextScaleY = prevScaleY * ratio;
-
-          const diffx = pointer.ray.x - image.mesh.position.x;
-          const rx = diffx / prevScaleX;
-          const newRx = diffx / nextScaleX;
-          const x = image.mesh.position.x + (newRx - rx) * nextScaleX;
-
-          const diffy = pointer.ray.y - image.mesh.position.y;
-          const ry = diffy / prevScaleY;
-          const newRy = diffy / nextScaleY;
-          const y = image.mesh.position.y + (newRy - ry) * nextScaleY;
-
-          image.mesh.position.x = x;
-          image.mesh.position.y = y;
-          image.mesh.scale.multiplyScalar(ratio);
+          // const prevScaleX = image.mesh.scale.x;
+          // const prevScaleY = image.mesh.scale.y;
+          // const nextScaleX = prevScaleX * ratio;
+          // const nextScaleY = prevScaleY * ratio;
+          // const diffx = pointer.ray.x - image.mesh.position.x;
+          // const rx = diffx / prevScaleX;
+          // const newRx = diffx / nextScaleX;
+          // const x = image.mesh.position.x + (newRx - rx) * nextScaleX;
+          // const diffy = pointer.ray.y - image.mesh.position.y;
+          // const ry = diffy / prevScaleY;
+          // const newRy = diffy / nextScaleY;
+          // const y = image.mesh.position.y + (newRy - ry) * nextScaleY;
+          // image.mesh.position.x = x;
+          // image.mesh.position.y = y;
+          // image.mesh.scale.multiplyScalar(ratio);
         }
       };
 

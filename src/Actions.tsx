@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { outlineVertices } from "./Constants";
 import State, { PointerType, PortalType, ImageType } from "./State";
+import { MeshLine, MeshLineMaterial } from "meshline";
 
 export const getWorldPixelAtZ = (
   z: number,
@@ -13,6 +13,16 @@ export const getWorldPixelAtZ = (
   } else {
     return 1;
   }
+};
+
+export const snap2 = (val: number): number => {
+  const snap = getWorldPixelAtZ(5, State.camera) * 16;
+  return Math.round(val / snap) * snap;
+};
+
+export const snap = (val: number): number => {
+  const snap = getWorldPixelAtZ(5, State.camera) * 8;
+  return Math.round(val / snap) * snap;
 };
 
 export const setRay = (
@@ -28,6 +38,8 @@ export const setRay = (
     tempClip.sub(camera.position).normalize();
     const distance = (projectToZ - camera.position.z) / tempClip.z;
     target.copy(camera.position).add(tempClip.multiplyScalar(distance));
+    target.x = snap(target.x);
+    target.y = snap(target.y);
   }
 };
 
@@ -38,8 +50,8 @@ export const loadImage = async (image: ImageType, src: string) => {
 
     // TODO temp scale down for bowie, usually 5
     const worldPixel = getWorldPixelAtZ(1.5, State.camera);
-    const w = img.width * worldPixel;
-    const h = img.height * worldPixel;
+    const w = snap2(img.width * worldPixel);
+    const h = snap2(img.height * worldPixel);
 
     image.mesh.scale.set(w, h, 1);
     image.material.map = texture;
@@ -115,17 +127,20 @@ export const getSmallestTop = (meshes: Array<THREE.Object3D>) => {
   }
 };
 
-export const makeOutline = (color: any, lineWidth: number) => {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.BufferAttribute(outlineVertices, 3)
-  );
-  const material = new THREE.LineBasicMaterial({
-    color: color,
-    linewidth: lineWidth,
+export const makeOutline = (color: string, lineWidth: number) => {
+  const points = [
+    -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0, -0.5, -0.5, 0,
+  ];
+  const resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+  const material = new MeshLineMaterial({
+    color,
+    lineWidth: lineWidth,
+    sizeAttenuation: 0,
+    resolution,
   });
-  const outline = new THREE.Line(geometry, material);
+  const line = new MeshLine();
+  line.setPoints(points);
+  const outline = new THREE.Mesh(line, material);
   return outline;
 };
 
@@ -137,7 +152,7 @@ const makeLine = () => {
   );
   const material = new THREE.LineBasicMaterial({
     color: 0xaaaaaa,
-    linewidth: 2,
+    linewidth: 8,
   });
   return new THREE.Line(geometry, material);
 };
@@ -151,19 +166,21 @@ export const createPortal = (
   return {
     line1: makeLine(),
     src: {
-      outline: makeOutline(0xaaaaaa, 2),
+      outline: makeOutline("#aaaaaa", 8),
       mesh: new THREE.Mesh(),
       occluder: new THREE.Mesh(),
       min: new THREE.Vector3(sx - sw / 2, sy - sh / 2, 0),
       max: new THREE.Vector3(sx + sw / 2, sy + sh / 2, 0),
+      scale: new THREE.Vector3(sw, sh, 1),
     },
     dst: {
-      outline: makeOutline(0xaaaaaa, 2),
+      outline: makeOutline("#aaaaaa", 8),
       mesh: new THREE.Mesh(),
       scene: new THREE.Scene(),
       occluder: new THREE.Mesh(),
       min: new THREE.Vector3(dx - dw / 2, dy - dh / 2, 0),
       max: new THREE.Vector3(dx + dw / 2, dy + dh / 2, 0),
+      scale: new THREE.Vector3(dw, dh, 1),
     },
   };
 };
@@ -187,7 +204,7 @@ export const makePortal = (
       new Uint8Array((srcWidth / worldPixel) * (srcHeight / worldPixel) * 3),
       srcWidth / worldPixel,
       srcHeight / worldPixel,
-      THREE.RGBFormat
+      THREE.RGBAFormat
     );
   };
 
@@ -219,8 +236,12 @@ export const makePortal = (
   {
     const texture = makeSrcTexture();
     const mesh = portal.dst.mesh;
+
     const geometry = new THREE.PlaneGeometry();
-    const material = new THREE.MeshBasicMaterial({ map: texture });
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+      alphaTest: 0.5,
+    });
     mesh.userData.kind = "dst";
     mesh.geometry = geometry;
     mesh.material = material;
@@ -269,6 +290,7 @@ export const makePortal = (
   {
     const srcOutline = portal.src.outline;
     srcOutline.scale.set(srcWidth, srcHeight, 1);
+    console.log(srcOutline.scale);
     srcOutline.position.x = portal.src.min.x + srcWidth / 2;
     srcOutline.position.y = portal.src.min.y + srcHeight / 2;
     srcOutline.visible = State.outlinesVisible;
@@ -278,10 +300,6 @@ export const makePortal = (
   // set dst outline
   {
     const dstOutline = portal.dst.outline;
-    // @ts-ignore
-    dstOutline.material.lineWidth = 4;
-    // @ts-ignore
-    dstOutline.material.needsUpdate = true;
     dstOutline.scale.set(dstWidth, dstHeight, 1);
     dstOutline.position.x = portal.dst.min.x + dstWidth / 2 + dstOffset;
     dstOutline.position.y = portal.dst.min.y + dstHeight / 2 + dstOffset;
@@ -313,6 +331,8 @@ export const makePortal = (
   State.portals.push(portal);
 
   updateLines(portal);
+
+  // State.selected = [portal.dst.mesh];
 };
 
 export const drawPointer = (ray1: THREE.Vector3, ray2: THREE.Vector3) => {

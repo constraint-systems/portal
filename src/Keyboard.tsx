@@ -18,9 +18,9 @@ function Keyboard() {
           State.image.mesh.position.x -= worldPixel * 32;
         } else if (key === "arrowright") {
           State.image.mesh.position.x += worldPixel * 32;
-        } else if (key === ";") {
+        } else if (key === "v") {
           toggleOutlines();
-        } else if (key === "control") {
+        } else if (key === "c") {
           if (State.canvas) State.canvas.style.cursor = "crosshair";
         }
       }
@@ -28,11 +28,17 @@ function Keyboard() {
 
     const downHandler = (e: KeyboardEvent) => {
       let press = e.key.toLowerCase();
+      if (!e.repeat) State.pressed.push(press);
       pressed(press);
     };
 
     const upHandler = (e: KeyboardEvent) => {
-      // let press = e.key.toLowerCase();
+      let press = e.key.toLowerCase();
+      const index = State.pressed.indexOf(press);
+      if (index !== -1) {
+        State.pressed.splice(index, 1);
+        console.log(State.pressed);
+      }
     };
 
     window.addEventListener("keydown", downHandler);

@@ -12,6 +12,21 @@ const App = () => {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    const canvas = document.createElement("canvas");
+    const size = 8;
+    const inner = 2;
+    canvas.width = size;
+    canvas.height = size;
+    const cx = canvas.getContext("2d");
+    if (cx) {
+      cx.fillStyle = "#222";
+      cx.fillRect(size / 2 - inner / 2, size / 2 - inner / 2, inner, inner);
+      const url = canvas.toDataURL();
+      document.body.style.backgroundImage = `url("${url}")`;
+    }
+  }, []);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     State.canvas = canvas;
 
@@ -24,7 +39,7 @@ const App = () => {
       );
       State.camera = camera;
 
-      const renderer = new THREE.WebGLRenderer({ canvas: canvas });
+      const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.autoClear = false;
       State.renderer = renderer;
@@ -43,6 +58,31 @@ const App = () => {
       const vector = new THREE.Vector2();
 
       applyOutlineVisible();
+
+      // {
+      //   const canvas = document.createElement("canvas");
+      //   const size = 32;
+      //   canvas.width = size;
+      //   canvas.height = size;
+      //   const cx = canvas.getContext("2d");
+      //   if (cx) {
+      //     console.log("fill");
+      //     cx.fillStyle = "pink";
+      //     const inner = 2;
+      //     cx.fillRect(0, 0, inner, inner);
+      //     cx.fillRect(size - inner, 0, inner, inner);
+      //     cx.fillRect(size - inner, size - inner, inner, inner);
+      //     cx.fillRect(0, size - inner, inner, inner);
+      //     const texture = new THREE.CanvasTexture(canvas);
+      //     texture.wrapS = THREE.RepeatWrapping;
+      //     texture.wrapT = THREE.RepeatWrapping;
+      //     const cols = Math.floor(window.innerWidth / size);
+      //     const rows = Math.floor(window.innerHeight / size);
+      //     texture.repeat.set(cols, rows);
+      //     State.scene.background = texture;
+      //   }
+      // }
+      // console.log(State.scene);
 
       const animate = () => {
         requestAnimationFrame(animate);
@@ -67,6 +107,7 @@ const App = () => {
         renderer.render(State.scene2, camera);
         renderer.clearDepth();
         renderer.render(State.scene3, camera);
+        renderer.render(State.scene4, camera);
       };
       animate();
     }

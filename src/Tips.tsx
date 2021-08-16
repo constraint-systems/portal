@@ -12,7 +12,9 @@ const Tips = () => {
         paddingLeft: "0.5ch",
       }}
     >
-      ; - toggle outlines
+      v - toggle outlines
+      <br />
+      hold c - make new instead of select
     </div>
   );
 };

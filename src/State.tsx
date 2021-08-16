@@ -23,19 +23,21 @@ export type PointerType = {
 export type PortalType = {
   line1: THREE.Line;
   src: {
-    outline: THREE.Line;
+    outline: THREE.Mesh;
     occluder: THREE.Mesh;
     mesh: THREE.Mesh;
     min: THREE.Vector3;
     max: THREE.Vector3;
+    scale: THREE.Vector3;
   };
   dst: {
-    outline: THREE.Line;
+    outline: THREE.Mesh;
     occluder: THREE.Mesh;
     scene: THREE.Scene;
     mesh: THREE.Mesh;
     min: THREE.Vector3;
     max: THREE.Vector3;
+    scale: THREE.Vector3;
   };
 };
 
@@ -51,7 +53,7 @@ type DrawBoxType = {
   min: THREE.Vector3;
   max: THREE.Vector3;
   diff: THREE.Vector3;
-  outline: THREE.Line;
+  outline: THREE.Mesh;
 };
 
 type StateType = {
@@ -72,9 +74,11 @@ type StateType = {
   };
   pointer: PointerType;
   intersects: Array<THREE.Object3D>;
+  selected: Array<THREE.Object3D>;
   image: ImageType;
   cameraDown: THREE.Vector3;
   portals: Array<PortalType>;
+  pressed: Array<string>;
 };
 
 let imageMesh, imageMeshMaterial, imageGeometry;
@@ -107,9 +111,10 @@ const State: StateType = {
     min: new THREE.Vector3(),
     max: new THREE.Vector3(),
     diff: new THREE.Vector3(),
-    outline: makeOutline(0xffffff, 2),
+    outline: makeOutline("#ff00ff", 12),
   },
   intersects: [],
+  selected: [],
   image: {
     mesh: imageMesh,
     material: imageMeshMaterial,
@@ -137,6 +142,7 @@ const State: StateType = {
       ray: new THREE.Vector3(),
     },
   },
+  pressed: [],
 };
 
 export default State;
